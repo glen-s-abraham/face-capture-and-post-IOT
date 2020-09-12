@@ -1,0 +1,65 @@
+from tkinter import *
+import cv2
+from PIL import Image,ImageTk
+import face_recognition as fr
+
+cap=cv2.VideoCapture(0)
+
+root=Tk()
+root.geometry("500x350")
+lmain=Label(root)
+lmain.pack()
+
+lstatus=Label(root)
+lstatus.pack(side="top")
+
+
+
+def show_frame():
+	_, frame = cap.read()
+	frame=cv2.flip(frame,1)
+	cv2image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA)
+	cv2image=cv2.resize(cv2image,(300,250))
+	img = Image.fromarray(cv2image)
+	imgtk = ImageTk.PhotoImage(image=img)
+	lmain.imgtk = imgtk
+	lmain.configure(image=imgtk)
+	lmain.after(10, show_frame)
+	
+def detection():
+	
+	lstatus['text']="searching face..."
+	_, frame = cap.read()
+	known_image = fr.load_image_file("glen.jpg")
+	glen_encoding=fr.face_encodings(known_image)[0]
+	
+	face=fr.face_locations(frame)
+	if face:
+		print("face detected...")
+		lstatus['text']="face detected..."
+		cam_encoding=fr.face_encodings(frame)[0]
+		result = fr.compare_faces([glen_encoding], cam_encoding)
+		print(result[0])
+		if result[0]:
+			lstatus['text']="Valid user"
+		else:
+			lstatus['text']="Invalid user"	
+			
+	else:
+		print("no face detected...")
+		lstatus['text']="no face detected..."
+	
+	
+    
+show_frame()
+btn=Button(root,text="Unlock",command=detection)
+btn.pack(side="bottom",fill="both",expand="yes",padx=10,pady=10)
+root.mainloop()    
+    
+    
+    
+    
+    
+    
+show_frame()
+root.mainloop()    
