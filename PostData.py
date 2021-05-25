@@ -2,11 +2,11 @@ import requests
 
 
 url = "http://127.0.0.1:8000/faceapi/"
-payload = {}
 
-def post(file):
-	
-	
+
+def post(email,file):
+	print(email)
+	payload={'email': email}
 
 	files = [
   			('image', open(file,"rb"))

@@ -3,15 +3,19 @@ import PostData
 import base64
 import datetime
 from tkinter import *
+from tkinter import messagebox
 from PIL import Image,ImageTk
-
-device = cv2.VideoCapture(1,cv2.CAP_DSHOW) 
+import json
+device = cv2.VideoCapture(0,cv2.CAP_DSHOW) 
 
 root=Tk()
-root.geometry("500x350")
+root.geometry("500x500")
 lmain=Label(root)
 lmain.pack()
-
+lemail=Label(root,text="Enter email")
+lemail.pack()
+txtemail= Text(root, height = 3, width = 40)
+txtemail.pack()
 lstatus=Label(root)
 lstatus.pack(side="top")
 
@@ -29,23 +33,28 @@ def show_frame():
 def capture_image():
 	"""captures the frame from webcam"""
 	lstatus['text']="Capturing and checking database"
-	try:
-		ret, frame = device.read()
-		result=save_and_send(frame)
-		result=result.decode('utf8')
-		print(type(result))
-		if result.find("known entity"):
-			print("Valid entity")
-			lstatus['text']="Authorized User-"+result
-		else:
-			lstatus['text']="Unauthorized User"		
-	except:
-		print("error occured")
+	email=txtemail.get("1.0","end")
+	if email:
+		
+		try:
+			ret, frame = device.read()
+			result=save_and_send(email,frame)
+			result=json.loads(result.decode('utf8'))
+			if result!="error occured":
+				print(result["status"])
+			
+					
+		except:
+			messagebox.showerror(title="Processing Error",message="Unable to process.Please retry")
+	else:
+		messagebox.showerror(title="Email Address",message="Enter a valid email address")	
+	
 
 
 
-def save_and_send(img):
+def save_and_send(email,img):
 	"""save image to disk and uploads"""
+	
 	special_char=(" ",":",".")
 	filename=str(datetime.datetime.now())
 	for char in special_char:
@@ -56,15 +65,15 @@ def save_and_send(img):
 
 	try:
 		cv2.imwrite(filename,img)
-		res=PostData.post(filename)
+		res=PostData.post(email,filename)
 		return res
 	except:
-		print("Exception saving and posting")	
+		messagebox.showerror(title="Posting Error",message="Exception saving and posting")	
 
 
 show_frame()
-btn=Button(root,text="Unlock",command=capture_image)
-btn.pack(side="bottom",fill="both",expand="yes",padx=10,pady=10)
+btn=Button(root,text="Unlock",command=capture_image, height = 3, width = 40)
+btn.pack()
 root.mainloop()  
 device.release()  
     
